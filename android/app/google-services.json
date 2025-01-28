@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "13494927660",
+    "project_id": "wakkyapp-1821101d",
+    "storage_bucket": "wakkyapp-1821101d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13494927660:android:d1433a775589085db1ec89",
+        "android_client_info": {
+          "package_name": "android.app.build.gradle"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqbmaOA7_cDOM3i6lHz3WDOoQoAnjQRS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13494927660:android:bbac95a30b98b6d8b1ec89",
+        "android_client_info": {
+          "package_name": "com.appwakky.wakkyfirebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqbmaOA7_cDOM3i6lHz3WDOoQoAnjQRS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
