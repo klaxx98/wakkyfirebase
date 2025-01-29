@@ -1,67 +1,114 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /*
 * PANTALLA DE HISTORIAL DE CONTRATACIONES
 */
 
 class HistoryScreen extends StatelessWidget {
-  final List<Map<String, String>> historyList = [
-    {
-      'professional': 'Pro1',
-      'date': '2025-01-10',
-      'serviceType': 'Computación',
-      'price': '\$50'
-    },
-    {
-      'professional': 'Pro2',
-      'date': '2025-01-15',
-      'serviceType': 'Smartphone',
-      'price': '\$30'
-    },
-    {
-      'professional': 'Pro3',
-      'date': '2025-01-20',
-      'serviceType': 'Computación',
-      'price': '\$70'
-    },
-  ];
+  Future<String> _fetchProName(String proEmail) async {
+    try {
+      var proDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .where('mail', isEqualTo: proEmail)
+          .limit(1)
+          .get();
+
+      if (proDoc.docs.isNotEmpty) {
+        return proDoc.docs.first['name'] ?? 'Profesional';
+      }
+    } catch (e) {
+      print("Error al obtener el nombre del profesional: $e");
+    }
+    return 'Profesional';
+  }
 
   @override
   Widget build(BuildContext context) {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Historial de Contrataciones')),
+        body: Center(child: Text('No has iniciado sesión.')),
+      );
+    }
+
+    String userEmail = user.email!.trim().toLowerCase();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Historial de Contrataciones'),
       ),
-      body: ListView.builder(
-        itemCount: historyList.length,
-        itemBuilder: (context, index) {
-          final item = historyList[index];
-          return ListTile(
-            title: Text(item['professional'] ?? ''),
-            subtitle: Text(item['date'] ?? ''),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text(item['professional'] ?? ''),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Tipo de servicio: ${item['serviceType']}'),
-                        Text('Fecha: ${item['date']}'),
-                        Text('Valor pagado: ${item['price']}'),
-                      ],
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('appointments')
+            .where('usermail', isEqualTo: userEmail)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar los datos.'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No tienes contrataciones previas.'));
+          }
+
+          var historyList = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: historyList.length,
+            itemBuilder: (context, index) {
+              var item = historyList[index].data() as Map<String, dynamic>;
+              String proEmail = item['promail'] ?? 'Correo desconocido';
+
+              return FutureBuilder<String>(
+                future: _fetchProName(proEmail),
+                builder: (context, proSnapshot) {
+                  String proName = proSnapshot.data ?? 'Cargando...';
+
+                  return ListTile(
+                    title: Text(proName),
+                    subtitle: Text(
+                      item['timestamp'] != null
+                          ? DateTime.fromMillisecondsSinceEpoch(
+                                  (item['timestamp'] as Timestamp)
+                                      .millisecondsSinceEpoch)
+                              .toString()
+                          : 'Fecha desconocida',
                     ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text(proName),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Tipo de servicio: ${item['problem'] ?? 'No especificado'}'),
+                                Text(
+                                    'Fecha: ${item['timestamp'] != null ? DateTime.fromMillisecondsSinceEpoch((item['timestamp'] as Timestamp).millisecondsSinceEpoch).toString() : 'Fecha desconocida'}'),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('Cerrar'),
+                              ),
+                            ],
+                          );
                         },
-                        child: Text('Cerrar'),
-                      ),
-                    ],
+                      );
+                    },
                   );
                 },
               );
