@@ -7,17 +7,21 @@ import 'package:wakkyfirebase/screens/schedule_appointment_screen.dart';
 
 class ViewProScreen extends StatelessWidget {
   final String proName;
+  final String proEmail; // Agregar este campo
   final String imagePath;
   final int successfulContracts;
   final String address;
   final int positiveReviews;
+  final String description; // También añadimos descripción
 
   ViewProScreen({
     required this.proName,
+    required this.proEmail, // Asegurar que se pase el correo
     required this.imagePath,
     required this.successfulContracts,
     required this.address,
     required this.positiveReviews,
+    required this.description, // Pasar descripción
   });
 
   @override
@@ -58,7 +62,7 @@ class ViewProScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
-              Text('Descripción de $proName'),
+              Text(description), // Mostrar descripción
               SizedBox(height: 16),
               // Desempeño general
               Text(
@@ -113,6 +117,7 @@ class ViewProScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) => ScheduleAppointmentScreen(
                               proName: proName,
+                              proEmail: proEmail, // Ahora pasamos el correo
                               imagePath: imagePath,
                             ),
                           ),

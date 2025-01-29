@@ -1,9 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:wakkyfirebase/screens/viewpro_screen.dart';
-import 'package:wakkyfirebase/widgets/professional_card.dart';
 
 /*
-* PANTALLAS DE SERVICIO SMARTPHONE
+* PANTALLA DE SERVICIO SMARTPHONE
 */
 
 class SmartphoneScreen extends StatefulWidget {
@@ -13,12 +13,47 @@ class SmartphoneScreen extends StatefulWidget {
 
 class _SmartphoneScreenState extends State<SmartphoneScreen> {
   String postalAddress = "";
+  List<Map<String, dynamic>> professionals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchProfessionals();
+  }
+
+  Future<void> fetchProfessionals() async {
+    try {
+      // Consultar la colección 'professionals' donde el campo 'job' incluye 'smartphone'
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('professionals')
+          .where('job', arrayContains: 'smartphone')
+          .get();
+
+      // Convertir los documentos en una lista
+      List<Map<String, dynamic>> fetchedProfessionals = snapshot.docs
+          .map((doc) => {
+                'name': doc['name'],
+                'mail': doc['mail'],
+                'address': doc['address'],
+                'hirings': doc['hirings'], // Número de contrataciones exitosas
+                'rating': doc['rating'],   // Valoración promedio
+                'description': doc['description'], //descripción del profesional
+              })
+          .toList();
+
+      setState(() {
+        professionals = fetchedProfessionals;
+      });
+    } catch (e) {
+      print("Error al cargar los profesionales: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Servicio Técnico de Smartphones'),
+        title: Text('Técnico de Smartphones'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -67,67 +102,39 @@ class _SmartphoneScreenState extends State<SmartphoneScreen> {
               ),
               SizedBox(height: 16),
               Expanded(
-                child: ListView(
-                  children: [
-                    ProfessionalCard(
-                      name: 'Pro1',
-                      contracts: 10,
-                      imagePath: 'assets/profile_picture.png',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ViewProScreen(
-                              proName: 'Pro1',
-                              imagePath: 'assets/profile_picture.png',
-                              successfulContracts: 10,
-                              address: 'Dirección de Pro1',
-                              positiveReviews: 15,
+                child: professionals.isEmpty
+                    ? Center(child: CircularProgressIndicator())
+                    : ListView.builder(
+                        itemCount: professionals.length,
+                        itemBuilder: (context, index) {
+                          final pro = professionals[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: AssetImage('assets/profile_picture.png'),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    ProfessionalCard(
-                      name: 'Pro2',
-                      contracts: 10,
-                      imagePath: 'assets/profile_picture.png',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ViewProScreen(
-                              proName: 'Pro2',
-                              imagePath: 'assets/profile_picture.png',
-                              successfulContracts: 10,
-                              address: 'Dirección de Pro2',
-                              positiveReviews: 20,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    ProfessionalCard(
-                      name: 'Pro3',
-                      contracts: 10,
-                      imagePath: 'assets/profile_picture.png',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ViewProScreen(
-                              proName: 'Pro3',
-                              imagePath: 'assets/profile_picture.png',
-                              successfulContracts: 10,
-                              address: 'Dirección de Pro3',
-                              positiveReviews: 25,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                            title: Text('${pro['name']}'),
+                            subtitle: Text(
+                                'Contratos exitosos: ${pro['hirings']}\nRating: ${pro['rating']?.toStringAsFixed(1) ?? "N/A"}'),
+                            trailing: Icon(Icons.arrow_forward),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ViewProScreen(
+                                    proName: pro['name'],
+                                    proEmail: pro['mail'],
+                                    imagePath: 'assets/profile_picture.png',
+                                    successfulContracts: pro['hirings'],
+                                    address: pro['address'],
+                                    positiveReviews: pro['rating'],
+                                    description: pro['description'] ?? 'Sin descripción',
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
               ),
             ],
           ],

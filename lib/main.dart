@@ -2,11 +2,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:wakkyfirebase/screens/login_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp().then((value) {
-    runApp(WakkyApp());
-  });
+  await Firebase.initializeApp();
+  runApp(WakkyApp());
 }
 
 class WakkyApp extends StatelessWidget {
@@ -21,26 +20,3 @@ class WakkyApp extends StatelessWidget {
     );
   }
 }
-
-/*
-List usuarios = [];
-
-@override
-void initState() {
-  super.initState();
-  getUsers();
-}
-
-void getUsers() async {
-  CollectionReference collectionReference =
-      FirebaseFirestore.instance.collection('users');
-  QuerySnapshot users = await collectionReference.get();
-
-  if (users.docs.length != 0) {
-    for (var doc in users.docs) {
-      print(doc.data());
-      usuarios.add(doc.data());
-    }
-  }
-}
-*/
